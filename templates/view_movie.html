@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Show movie</title>
+</head>
+<body>
+
+    <h1>Movie: {{ movie.title }}</h1>
+    <p><strong>Director:</strong> {{ movie.director }}</p>
+    <p><strong>Year:</strong> {{ movie.year }}</p>
+    <p><strong>Rating:</strong> {{ movie.rating }}</p>
+
+    <a href="{{ url_for('update_movie', user_id=user.id, movie_id=movie.id) }}">>Edit Movie</a>
+    <a href="{{ url_for('user_movies', user_id=user_id) }}">Back users overview</a>
+</body>
+</html>

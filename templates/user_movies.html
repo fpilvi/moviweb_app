@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.name }}'s Movies - MovieWeb App</title>
+</head>
+<body>
+
+    <h1>{{ user.name }}'s Favorite Movies</h1>
+    <a href="{{ url_for('add_movie', user_id=user.id) }}" class="btn">Add a New Movie</a>
+    <div class="movie-grid">
+        {% for movie in movies %}
+        <div class="movie-card">
+            <h3>{{ movie.title }}</h3>
+            <p><strong>Director:</strong> {{ movie.director }}</p>
+            <p><strong>Year:</strong> {{ movie.year }}</p>
+            <p><strong>Rating:</strong> {{ movie.rating }}</p>
+            <div class="buttons">
+                <form method="GET" action="{{ url_for('update_movie', user_id=user.id, movie_id=movie.id) }}" style="display:inline;">
+                    <button type="submit">Edit</button>
+                </form>
+                <form method="POST" action="{{ url_for('delete_movie', user_id=user.id, movie_id=movie.id) }}" style="display:inline;">
+                    <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <p>No movies found.</p>
+        {% endfor %}
+    </div>
+
+    <a href="{{ url_for('list_users') }}" class="btn">Back to Users List</a>
+</body>
+</html>
