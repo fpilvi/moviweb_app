@@ -1,14 +1,12 @@
 from extensions import db
 from models import User, Movie
-from data_manager_interface import DataManagerInterface
+from datamanager.data_manager_interface import DataManagerInterface
 
 
 class SQLiteDataManager(DataManagerInterface):
-    def __init__(self, app, db_file_name='moviweb.db'):
-        """Initialize SQLiteDataManager with Flask app and database file."""
+    def __init__(self, app):
+        """Initialize SQLiteDataManager with Flask app."""
         self.app = app
-        app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_file_name}"
-        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     def _get_session(self):
         """Get a session with app context."""
@@ -41,8 +39,7 @@ class SQLiteDataManager(DataManagerInterface):
             db.session.add(new_user)
             db.session.commit()
 
-    @staticmethod
-    def delete_user(user_id):
+    def delete_user(self, user_id):
         """Delete a user from the database."""
         try:
             user = User.query.get(user_id)
@@ -55,7 +52,13 @@ class SQLiteDataManager(DataManagerInterface):
     def add_movie(self, user_id, title, director, year, rating):
         """Add a new movie to the database."""
         with self._get_session():
-            new_movie = Movie(title=title, director=director, year=year, rating=rating, user_id=user_id)
+            new_movie = Movie(
+                title=title,
+                director=director,
+                year=year,
+                rating=rating,
+                user_id=user_id,
+            )
             db.session.add(new_movie)
             db.session.commit()
 

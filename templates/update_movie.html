@@ -8,17 +8,43 @@
 </head>
 <body>
     <form method="POST">
-        <label for="title">Title:</label>
-        <input type="text" id="title" name="title" value="{{ movie.title }}" required><br>
+    <label for="title">Title:</label>
+    <input
+        type="text"
+        id="title"
+        name="title"
+        value="{{ movie.title }}"
+        required maxlength="100">
+    <br><br>
 
-        <label for="year">Year:</label>
-        <input type="number" id="year" name="year" value="{{ movie.year }}" required><br>
+    <label for="director">Director:</label>
+    <input
+        type="text"
+        id="director"
+        name="director"
+        value="{{ movie.director }}"
+        required pattern="[a-zA-Z\s]+"
+        title="Only letters and spaces are allowed.">
+    <br><br>
 
-        <label for="rating">Rating:</label>
-        <input type="number" id="rating" name="rating" step="0.1" value="{{ movie.rating }}" required><br>
+    <label for="year">Year:</label>
+    <input
+        type="number"
+        id="year"
+        name="year"
+        value="{{ movie.year }}"
+        required min="1900" max="2025">
+    <br><br>
 
-        <label for="director">Director:</label>
-        <input type="text" id="director" name="director" value="{{ movie.director }}" required><br>
+    <label for="rating">Rating (1-10):</label>
+    <input
+        type="number"
+        id="rating"
+        name="rating"
+        value="{{ movie.rating }}"
+        required min="1" max="10" step="0.1"
+        title="Please enter a number between 1 and 10.">
+    <br><br>
 
         <button type="submit">Update Movie</button>
     </form>

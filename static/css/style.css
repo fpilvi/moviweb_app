@@ -7,8 +7,6 @@ body {
     text-align: center;
 }
 
-
-
 header {
     background-color: #111;
     color: #fff;
@@ -136,4 +134,41 @@ button:hover {
     font-size: 2rem;
     color: #fff;
     margin-top: 2rem;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+}
+
+li {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 1rem 0;
+}
+
+li a {
+    margin-right: 1rem;
+    color: #fff;
+    text-decoration: none;
+}
+
+li form {
+    display: inline;
+}
+
+li button {
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    background-color: #111;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+li button:hover {
+    background-color: #444;
 }

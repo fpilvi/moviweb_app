@@ -1,13 +1,15 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 from extensions import db
-from sqlite_data_manager import SQLiteDataManager
+from datamanager.sqlite_data_manager import SQLiteDataManager
 from models import User, Movie
 import logging
+import requests
 
+OMDB_API_KEY = '7a9062b5'
 
-app = Flask(__name__)
+app = Flask(__name__, instance_relative_config=True)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///moviweb.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + app.instance_path + '/moviweb.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -42,10 +44,6 @@ def add_user():
     """Add a new user."""
     if request.method == 'POST':
         name = request.form['name']
-
-        if not name or len(name) > 100:
-            return "Invalid name. Name cannot be empty and must be less than 100 characters.", 400
-
         try:
             data_manager.add_user(name)
         except Exception as e:
@@ -80,53 +78,45 @@ def user_movies(user_id):
     return render_template('user_movies.html', user=user, movies=movies)
 
 
-@app.route('/add_movie/<int:user_id>', methods=['GET', 'POST'])
+@app.route('/users/<int:user_id>/add_movie', methods=['GET', 'POST'])
 def add_movie(user_id):
-    """Add a new movie for a user."""
-    user = User.query.get(user_id)
-
-    if user is None:
-        return render_template('404.html'), 404
-
+    """Add a new movie to the user's movie list."""
     if request.method == 'POST':
         title = request.form['title']
         director = request.form['director']
         year = request.form['year']
         rating = request.form['rating']
 
-        # Validate title
-        if not title or len(title) > 100:
-            return "Invalid title. Title cannot be empty and must be less than 100 characters.", 400
+        if title:
+            omdb_url = f"http://www.omdbapi.com/?t={title}&apikey={OMDB_API_KEY}"
+            response = requests.get(omdb_url)
+            data = response.json()
 
-        # Validate director
-        if not director.replace(" ", "").isalpha():
-            return "Invalid director name. Only letters and spaces are allowed.", 400
+            if data.get('Response') == 'True':
+                director = data.get('Director', director)
+                if director:
+                    director = director.split(',')[0]
 
-        # Validate rating
-        try:
-            rating = float(rating)
-            if rating < 0 or rating > 10:
-                return "Rating must be between 0 and 10.", 400
-        except ValueError:
-            return "Invalid rating value. Please enter a number.", 400
+                title = data.get('Title', title)
+                year = data.get('Year', year)
+                rating = data.get('imdbRating', rating)
 
-        # Validate year
-        try:
-            year = int(year)
-            if year < 1900 or year > 2100:
-                return "Year must be between 1900 and 2100.", 400
-        except ValueError:
-            return "Invalid year value. Please enter a valid year.", 400
+            else:
+                flash(f"Movie '{title}' not found in OMDb. Please manually enter the details.", "warning")
 
-        try:
-            data_manager.add_movie(user_id, title, director, year, rating)
-        except Exception as e:
-            app.logger.error(f"Error adding movie for user {user_id}: {str(e)}")
-            return render_template('500.html'), 500
+        new_movie = Movie(
+            title=title,
+            director=director,
+            year=year,
+            rating=rating,
+            user_id=user_id
+        )
 
+        db.session.add(new_movie)
+        db.session.commit()
         return redirect(url_for('user_movies', user_id=user_id))
 
-    return render_template('add_movie.html', user=user)
+    return render_template('add_movie.html', user_id=user_id)
 
 
 @app.route('/users/<int:user_id>/update_movie/<int:movie_id>', methods=['GET', 'POST'])
@@ -142,18 +132,19 @@ def update_movie(user_id, movie_id):
         year = request.form['year']
         director = request.form['director']
 
-        # Validate title
         if not title or len(title) > 100:
-            return "Invalid title. Title cannot be empty and must be less than 100 characters.", 400
+            return "Invalid title. Title cannot be empty.", 400
 
-        # Validate director
         if not director.replace(" ", "").isalpha():
             return "Invalid director name. Only letters and spaces are allowed.", 400
 
-        # Validate rating
         try:
             rating = float(rating)
             year = int(year)
+
+            if rating < 1 or rating > 10:
+                return "Rating must be between 1 and 10.", 400
+
             movie.title = title
             movie.rating = rating
             movie.year = year
